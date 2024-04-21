@@ -1,6 +1,9 @@
 
 <template>
-  <button @click="increment">Count is: {{ count }}</button>
+  <div>
+    <p>Count is: {{ count }}</p>
+    <v-btn @click="increment" color="primary"> Button </v-btn>
+  </div>
 </template>
 
 <script setup>
