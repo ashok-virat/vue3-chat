@@ -3,7 +3,7 @@
     <v-row>
       <v-col cols="3">
         <v-card class="pa-2 user-card" tile>
-          <v-list>
+          <v-list slim>
             <v-list-subheader>Users</v-list-subheader>
 
             <v-list-item
@@ -11,7 +11,6 @@
               :key="i"
               :value="item"
               color="primary"
-              rounded="shaped"
               @keydown.enter.stop
               @click.stop="openChat(item)"
             >

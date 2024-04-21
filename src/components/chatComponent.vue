@@ -3,11 +3,11 @@
     <v-card class="pa-2 user-card" tile>
       <v-list v-if="messages.length">
         <v-list-item
+          ripple
           v-for="(item, i) in messages"
           :key="i"
           :value="item"
-          color="primary"
-          rounded="shaped"
+          :active="false"
         >
           <v-list-item-title
             :class="
@@ -16,8 +16,12 @@
                 : 'receiver'
             "
             class="user"
-            >{{ item.message }}</v-list-item-title
-          >
+            ><span class="message">{{ item.message }}</span>
+
+            <p style="font-size: 12px">
+              {{ convertDate(item.timestamp) }}
+            </p>
+          </v-list-item-title>
         </v-list-item>
       </v-list>
       <div v-if="!messages.length && !loading">No messages avilable</div>
@@ -49,10 +53,29 @@ const query = ref("");
 
 const props = defineProps(["user", "loggedInUserInfo"]);
 
+const convertDate = (dateString) => {
+  const date = new Date(dateString);
+
+  const options = {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "numeric",
+    minute: "numeric",
+    second: "numeric",
+  };
+
+  const userFriendlyDate = date.toLocaleString("en-US", options);
+  return userFriendlyDate;
+};
+
+const generateTimestamp = () => {
+  const date = new Date();
+  const timestamp = date.toISOString().replace("Z", "");
+  return `${timestamp}Z`;
+};
+
 const createMessage = async () => {
-  console.log(props.user);
-  console.log(props.loggedInUserInfo);
-  console.log(query.value);
   const req = {
     senderId: props.loggedInUserInfo.userId,
     receiverId: props.user._id,
@@ -61,9 +84,12 @@ const createMessage = async () => {
     message: query.value,
   };
   try {
+    const dupReq = structuredClone(req);
+    dupReq["timestamp"] = generateTimestamp();
+    messages.value.push(dupReq);
     sending.value = true;
-    const data = await ApiService.createMessage(req);
-    console.lof(data);
+    query.value = "";
+    await ApiService.createMessage(req);
   } catch {
     sending.value = false;
   }
@@ -79,7 +105,6 @@ onMounted(async () => {
     const data = await ApiService.fetchMessages(req);
     messages.value = data;
     loading.value = false;
-    console.log(data);
   } catch {
     loading.value = false;
   }
@@ -102,5 +127,10 @@ onMounted(async () => {
   position: absolute;
   bottom: 0px;
   width: 98%;
+}
+.message {
+  font-weight: 500;
+  font-size: 18px;
+  font-style: normal;
 }
 </style>
