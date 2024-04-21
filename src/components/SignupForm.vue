@@ -61,6 +61,7 @@
 
 <script setup>
 import { ref, onMounted } from "vue";
+import ApiService from "../service/userService";
 
 const snackbar = ref(false);
 
@@ -73,10 +74,14 @@ const userForm = ref({
   status: "",
 });
 
-const submitForm = () => {
-  console.log(userForm.value);
-  snackbar.value = true;
-  message.value = "Signedup successfully";
+const submitForm = async () => {
+  try {
+    await ApiService.submitUserData(userForm.value);
+    snackbar.value = true;
+    message.value = "Signup Successful!";
+  } catch {
+    snackbar.value = "Techincal issue";
+  }
 };
 
 // lifecycle hooks
