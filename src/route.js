@@ -1,6 +1,7 @@
 import SignupFormVue from './components/SignupForm.vue'
 import { createRouter, createWebHistory } from 'vue-router';
 import LoginForm from './components/LoginForm.vue'
+import userComponent from './components/usersComponent.vue'
 
 
 const routes = [
@@ -13,6 +14,11 @@ const routes = [
         path: '/login',
         name: 'Login',
         component: LoginForm
+    },
+    {
+        path: '/chat',
+        name: 'Chat',
+        component: userComponent
     }
 ]
 

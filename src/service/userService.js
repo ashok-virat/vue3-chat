@@ -31,6 +31,15 @@ const ApiService = {
             throw new Error(error.response.data || error.message);
         }
     },
+
+    async fetchUsers() {
+        try {
+            const response = await axios.get(`${API_BASE_URL}/getusers`);
+            return response.data;
+        } catch (error) {
+            throw new Error(error.response.data.message || error.message);
+        }
+    },
 };
 
 export default ApiService;

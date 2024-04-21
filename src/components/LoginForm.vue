@@ -80,6 +80,9 @@ const submitForm = async () => {
     await ApiService.login(userForm.value);
     snackbar.value = true;
     message.value = "Signin Successful!";
+    setTimeout(() => {
+      router.push("/chat");
+    }, 2000);
     loading.value = false;
   } catch (e) {
     snackbar.value = true;

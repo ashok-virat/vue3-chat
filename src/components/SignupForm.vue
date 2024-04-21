@@ -11,7 +11,7 @@
           <v-card-text>
             <v-form class="submit-form" @submit.prevent="submitForm">
               <v-text-field
-                v-model="userForm.username"
+                v-model="userForm.userName"
                 variant="underlined"
                 label="Username"
                 required
@@ -79,7 +79,7 @@ const message = ref("");
 const loading = ref(false);
 
 const userForm = ref({
-  username: "",
+  userName: "",
   email: "",
   password: "",
   status: "",
