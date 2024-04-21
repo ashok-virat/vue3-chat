@@ -77,9 +77,15 @@ const navigateToSignup = () => {
 const submitForm = async () => {
   try {
     loading.value = true;
-    await ApiService.login(userForm.value);
+    const data = await ApiService.login(userForm.value);
     snackbar.value = true;
     message.value = "Signin Successful!";
+    const userInfo = {
+      userName: data.userName,
+      status: data.status,
+      userId: data._id,
+    };
+    localStorage.setItem("user", JSON.stringify(userInfo));
     setTimeout(() => {
       router.push("/chat");
     }, 2000);

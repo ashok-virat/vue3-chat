@@ -12,7 +12,8 @@
               :value="item"
               color="primary"
               rounded="shaped"
-              @click="openChat(item)"
+              @keydown.enter.stop
+              @click.stop="openChat(item)"
             >
               <v-list-item-title class="user">{{
                 item.userName
@@ -22,16 +23,22 @@
         </v-card>
       </v-col>
       <v-col cols="9"
-        ><chatComponent v-if="loadChat" :user="activeUser"
+        ><chatComponent
+          v-if="loadChat"
+          :user="activeUser"
+          :loggedInUserInfo="loggedInUserInfo"
       /></v-col>
     </v-row>
   </v-container>
 </template>
 
 <script setup>
-import { onMounted, ref } from "vue";
+import { nextTick, onMounted, ref } from "vue";
 import ApiService from "../service/userService";
 import chatComponent from "./chatComponent.vue";
+import { useRouter } from "vue-router";
+
+const router = useRouter();
 
 const users = ref([]);
 
@@ -41,19 +48,30 @@ const loadChat = ref(false);
 
 const activeUser = ref({});
 
+const loggedInUserInfo = ref({});
+
 const openChat = (user) => {
-  loadChat.value = true;
-  activeUser.value = user;
+  loadChat.value = false;
+  nextTick(() => {
+    loadChat.value = true;
+    activeUser.value = user;
+  });
 };
 
 onMounted(async () => {
-  try {
-    loading.value = true;
-    const data = await ApiService.fetchUsers();
-    users.value = data;
-    loading.value = false;
-  } catch {
-    loading.value = false;
+  const userInfo = localStorage.getItem("user");
+  if (userInfo) {
+    loggedInUserInfo.value = JSON.parse(userInfo);
+    try {
+      loading.value = true;
+      const data = await ApiService.fetchUsers();
+      users.value = data.filter((x) => x._id !== loggedInUserInfo.value.userId);
+      loading.value = false;
+    } catch {
+      loading.value = false;
+    }
+  } else {
+    router.push("/login");
   }
 });
 </script>
