@@ -3,17 +3,17 @@
   <v-container class="signup-form" fluid>
     <v-row justify="center" align="center" class="signup-form-row">
       <v-col cols="6">
-        <img src="../../public/chat.jpeg" alt="Chat Image" class="image" />
+        <img src="../../public/chat1.jpeg" alt="Chat Image" class="image" />
       </v-col>
       <v-col cols="6">
         <v-card class="mx-auto" max-width="500">
           <v-card-title class="headline">Sign In</v-card-title>
           <v-card-text>
-            <v-form @submit.prevent="submitForm">
+            <v-form class="submit-form" @submit.prevent="submitForm">
               <v-text-field
-                v-model="userForm.username"
+                v-model="userForm.email"
                 variant="underlined"
-                label="Username Or Email"
+                label="Email"
                 required
               ></v-text-field>
               <v-text-field
@@ -23,8 +23,14 @@
                 type="password"
                 required
               ></v-text-field>
-              <v-btn type="submit" color="primary">Sign Up</v-btn>
+              <v-btn :loading="loading" type="submit" color="primary"
+                >Sign In</v-btn
+              >
             </v-form>
+            <span class="login-route"
+              >Don't have an account yet?
+              <a @click="navigateToSignup">Signup</a></span
+            >
           </v-card-text>
         </v-card>
       </v-col>
@@ -47,34 +53,40 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref } from "vue";
 import ApiService from "../service/userService";
+import { useRouter } from "vue-router";
+
+const router = useRouter();
 
 const snackbar = ref(false);
 
 const message = ref("");
 
+const loading = ref(false);
+
 const userForm = ref({
-  username: "",
   email: "",
   password: "",
-  status: "",
 });
+
+const navigateToSignup = () => {
+  router.push("/");
+};
 
 const submitForm = async () => {
   try {
-    await ApiService.submitUserData(userForm.value);
+    loading.value = true;
+    await ApiService.login(userForm.value);
     snackbar.value = true;
-    message.value = "Signup Successful!";
-  } catch {
-    snackbar.value = "Techincal issue";
+    message.value = "Signin Successful!";
+    loading.value = false;
+  } catch (e) {
+    snackbar.value = true;
+    message.value = e;
+    loading.value = false;
   }
 };
-
-// lifecycle hooks
-onMounted(() => {
-  console.log("mounted");
-});
 </script>
 
 <style scoped>
@@ -87,5 +99,14 @@ onMounted(() => {
 }
 .signup-form-row {
   height: 100vh;
+}
+.login-route a {
+  cursor: pointer;
+}
+.login-route a:hover {
+  color: #1867c0;
+}
+.submit-form {
+  padding-bottom: 10px;
 }
 </style>

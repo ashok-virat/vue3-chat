@@ -9,7 +9,7 @@
         <v-card class="mx-auto" max-width="500">
           <v-card-title class="headline">Sign Up</v-card-title>
           <v-card-text>
-            <v-form @submit.prevent="submitForm">
+            <v-form class="submit-form" @submit.prevent="submitForm">
               <v-text-field
                 v-model="userForm.username"
                 variant="underlined"
@@ -36,8 +36,14 @@
                 label="Status"
                 required
               ></v-text-field>
-              <v-btn type="submit" color="primary">Sign Up</v-btn>
+              <v-btn :loading="loading" type="submit" color="primary"
+                >Sign Up</v-btn
+              >
             </v-form>
+            <span class="login-route"
+              >Already have an account?
+              <a @click="navigateToLogin">login</a></span
+            >
           </v-card-text>
         </v-card>
       </v-col>
@@ -60,12 +66,17 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref } from "vue";
 import ApiService from "../service/userService";
+import { useRouter } from "vue-router";
+
+const router = useRouter();
 
 const snackbar = ref(false);
 
 const message = ref("");
+
+const loading = ref(false);
 
 const userForm = ref({
   username: "",
@@ -74,20 +85,25 @@ const userForm = ref({
   status: "",
 });
 
+const navigateToLogin = () => {
+  router.push("/login");
+};
+
 const submitForm = async () => {
   try {
+    loading.value = true;
     await ApiService.submitUserData(userForm.value);
     snackbar.value = true;
     message.value = "Signup Successful!";
+    loading.value = false;
+    setTimeout(() => {
+      router.push("/login");
+    }, 2000);
   } catch {
     snackbar.value = "Techincal issue";
+    loading.value = false;
   }
 };
-
-// lifecycle hooks
-onMounted(() => {
-  console.log("mounted");
-});
 </script>
 
 <style scoped>
@@ -100,5 +116,14 @@ onMounted(() => {
 }
 .signup-form-row {
   height: 100vh;
+}
+.login-route a {
+  cursor: pointer;
+}
+.login-route a:hover {
+  color: #1867c0;
+}
+.submit-form {
+  padding-bottom: 10px;
 }
 </style>
