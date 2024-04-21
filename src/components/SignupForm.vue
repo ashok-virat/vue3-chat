@@ -12,23 +12,27 @@
             <v-form @submit.prevent="submitForm">
               <v-text-field
                 v-model="userForm.username"
+                variant="underlined"
                 label="Username"
                 required
               ></v-text-field>
               <v-text-field
                 v-model="userForm.email"
+                variant="underlined"
                 label="Email"
                 type="email"
                 required
               ></v-text-field>
               <v-text-field
                 v-model="userForm.password"
+                variant="underlined"
                 label="Password"
                 type="password"
                 required
               ></v-text-field>
               <v-text-field
                 v-model="userForm.status"
+                variant="underlined"
                 label="Status"
                 required
               ></v-text-field>
@@ -38,11 +42,29 @@
         </v-card>
       </v-col>
     </v-row>
+    <v-snackbar
+      v-model="snackbar"
+      :timeout="2000"
+      color="white"
+      tile
+      location="top"
+    >
+      {{ message }}
+      <template v-slot:actions>
+        <v-btn color="pink" variant="text" @click="snackbar = false">
+          Close
+        </v-btn>
+      </template>
+    </v-snackbar>
   </v-container>
 </template>
 
 <script setup>
 import { ref, onMounted } from "vue";
+
+const snackbar = ref(false);
+
+const message = ref("");
 
 const userForm = ref({
   username: "",
@@ -53,6 +75,8 @@ const userForm = ref({
 
 const submitForm = () => {
   console.log(userForm.value);
+  snackbar.value = true;
+  message.value = "Signedup successfully";
 };
 
 // lifecycle hooks
