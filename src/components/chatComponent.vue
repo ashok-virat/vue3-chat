@@ -1,8 +1,15 @@
 <template>
   <v-container style="padding: 0px" fluid>
-    <v-card class="pa-2 user-card" tile>
-      <v-list v-if="messages.length" class="user-list">
+    <v-card class="user-card" tile>
+      <div class="align-center d-flex navbar pl-2">
+        <v-avatar color="black" size="x-small">
+          {{ user.userName[0] }}
+        </v-avatar>
+        <span class="font-weight-medium pl-2">{{ user.userName }}</span>
+      </div>
+      <v-list v-if="messages.length" class="pa-2 user-list">
         <v-list-item
+          class="px-1"
           ripple
           v-for="(item, i) in messages"
           :key="i"
@@ -24,7 +31,16 @@
           </v-list-item-title>
         </v-list-item>
       </v-list>
-      <div v-if="!messages.length && !loading">No messages avilable</div>
+      <div v-if="!messages.length && !loading" class="loader">
+        No messages avilable
+      </div>
+      <div v-if="loading" class="loader">
+        <v-progress-circular
+          :size="30"
+          color="black"
+          indeterminate
+        ></v-progress-circular>
+      </div>
       <div class="text-area">
         <v-textarea
           v-model="query"
@@ -33,6 +49,7 @@
           variant="filled"
           auto-grow
           @keydown.enter.prevent="createMessage"
+          hide-details
         ></v-textarea>
       </div>
     </v-card>
@@ -40,10 +57,8 @@
 </template>
 
 <script setup>
-import { ref, defineProps, onMounted, onBeforeUnmount } from "vue";
+import { ref, defineProps, onMounted, defineEmits, nextTick } from "vue";
 import ApiService from "../service/userService";
-
-const messages = ref([]);
 
 const loading = ref(false);
 
@@ -51,7 +66,9 @@ const sending = ref(false);
 
 const query = ref("");
 
-const props = defineProps(["user", "loggedInUserInfo"]);
+const props = defineProps(["user", "loggedInUserInfo", "messages"]);
+
+const emit = defineEmits(["newMessages", "newUserMessages", "emitMessages"]);
 
 const convertDate = (dateString) => {
   const date = new Date(dateString);
@@ -86,7 +103,7 @@ const createMessage = async () => {
   try {
     const dupReq = structuredClone(req);
     dupReq["timestamp"] = generateTimestamp();
-    messages.value.push(dupReq);
+    emit("newMessages", dupReq);
     sending.value = true;
     query.value = "";
     setTimeout(() => {
@@ -95,39 +112,14 @@ const createMessage = async () => {
         userListContainer.scrollTop = userListContainer.scrollHeight;
       }
     }, 1000);
-    if (ws.value) {
-      ws.value.send(JSON.stringify(dupReq));
-    }
+    emit("emitMessages", dupReq);
     await ApiService.createMessage(req);
   } catch (e) {
     sending.value = false;
   }
 };
 
-const ws = ref("");
-
-onBeforeUnmount(() => {
-  if (ws.value) {
-    ws.value.close();
-  }
-});
-
 onMounted(async () => {
-  ws.value = new WebSocket("wss://pointy-gleaming-sapphire.glitch.me/");
-  ws.value.onmessage = (message) => {
-    const uint8Array = new Uint8Array(JSON.parse(message.data).data);
-    const text = new TextDecoder().decode(uint8Array);
-    const data = JSON.parse(text);
-    if (props.loggedInUserInfo.userId === data.receiverId) {
-      messages.value.push(data);
-      setTimeout(() => {
-        var userListContainer = document.querySelector(".user-list");
-        if (userListContainer) {
-          userListContainer.scrollTop = userListContainer.scrollHeight;
-        }
-      }, 1000);
-    }
-  };
   try {
     loading.value = true;
     const req = {
@@ -135,8 +127,14 @@ onMounted(async () => {
       receiverId: props.user._id,
     };
     const data = await ApiService.fetchMessages(req);
-    messages.value = data;
+    emit("newUserMessages", data);
     loading.value = false;
+    nextTick(() => {
+      var userListContainer = document.querySelector(".user-list");
+      if (userListContainer) {
+        userListContainer.scrollTop = userListContainer.scrollHeight;
+      }
+    });
   } catch {
     loading.value = false;
   }
@@ -154,11 +152,12 @@ onMounted(async () => {
   height: calc(100vh - 24px);
   overflow: auto;
   position: relative;
+  padding: 0px;
 }
 .text-area {
   position: absolute;
   bottom: 0px;
-  width: 98%;
+  width: 100%;
 }
 .message {
   font-weight: 500;
@@ -166,7 +165,17 @@ onMounted(async () => {
   font-style: normal;
 }
 .user-list {
-  height: calc(100vh - 124px);
+  height: calc(100vh - 139px);
   overflow: auto;
+}
+.navbar {
+  background: #e3e3e3;
+  min-height: 50px;
+  padding: 0px;
+}
+.loader {
+  position: absolute;
+  top: 50%;
+  left: 50%;
 }
 </style>
