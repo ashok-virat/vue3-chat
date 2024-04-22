@@ -113,7 +113,7 @@ onBeforeUnmount(() => {
 });
 
 onMounted(async () => {
-  ws.value = new WebSocket("ws://pointy-gleaming-sapphire.glitch.me/");
+  ws.value = new WebSocket("wss://pointy-gleaming-sapphire.glitch.me/");
   ws.value.onmessage = (message) => {
     const uint8Array = new Uint8Array(JSON.parse(message.data).data);
     const text = new TextDecoder().decode(uint8Array);
