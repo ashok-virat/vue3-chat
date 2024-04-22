@@ -1,7 +1,7 @@
 <template>
   <v-container style="padding: 0px" fluid>
     <v-card class="pa-2 user-card" tile>
-      <v-list v-if="messages.length">
+      <v-list v-if="messages.length" class="user-list">
         <v-list-item
           ripple
           v-for="(item, i) in messages"
@@ -40,7 +40,7 @@
 </template>
 
 <script setup>
-import { ref, defineProps, onMounted } from "vue";
+import { ref, defineProps, onMounted, onBeforeUnmount } from "vue";
 import ApiService from "../service/userService";
 
 const messages = ref([]);
@@ -89,13 +89,45 @@ const createMessage = async () => {
     messages.value.push(dupReq);
     sending.value = true;
     query.value = "";
+    setTimeout(() => {
+      var userListContainer = document.querySelector(".user-list");
+      if (userListContainer) {
+        userListContainer.scrollTop = userListContainer.scrollHeight;
+      }
+    }, 1000);
+    if (ws.value) {
+      ws.value.send(JSON.stringify(dupReq));
+    }
     await ApiService.createMessage(req);
-  } catch {
+  } catch (e) {
     sending.value = false;
   }
 };
 
+const ws = ref("");
+
+onBeforeUnmount(() => {
+  if (ws.value) {
+    ws.value.close();
+  }
+});
+
 onMounted(async () => {
+  ws.value = new WebSocket("ws://pointy-gleaming-sapphire.glitch.me/");
+  ws.value.onmessage = (message) => {
+    const uint8Array = new Uint8Array(JSON.parse(message.data).data);
+    const text = new TextDecoder().decode(uint8Array);
+    const data = JSON.parse(text);
+    if (props.loggedInUserInfo.userId === data.receiverId) {
+      messages.value.push(data);
+      setTimeout(() => {
+        var userListContainer = document.querySelector(".user-list");
+        if (userListContainer) {
+          userListContainer.scrollTop = userListContainer.scrollHeight;
+        }
+      }, 1000);
+    }
+  };
   try {
     loading.value = true;
     const req = {
@@ -132,5 +164,9 @@ onMounted(async () => {
   font-weight: 500;
   font-size: 18px;
   font-style: normal;
+}
+.user-list {
+  height: calc(100vh - 124px);
+  overflow: auto;
 }
 </style>
