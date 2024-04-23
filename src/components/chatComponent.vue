@@ -106,7 +106,6 @@ const generateTimestamp = () => {
 };
 
 const sendTyping = () => {
-  console.log("sd");
   const req = {
     senderId: props.loggedInUserInfo.userId,
     receiverId: props.user._id,
@@ -193,7 +192,7 @@ onMounted(async () => {
   white-space: normal;
 }
 .user-list {
-  height: calc(100vh - 139px);
+  height: calc(100vh - 145px);
   overflow: auto;
 }
 .navbar {

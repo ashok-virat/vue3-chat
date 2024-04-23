@@ -18,12 +18,16 @@
             >
               <v-list-item-title class="user"
                 ><span>{{ item.userName }}</span>
-                <span style="display: flex"
+                <span v-if="!item?.typing" style="display: flex"
                   ><v-badge
                     :color="item.active ? 'success' : 'error'"
                     dot
-                  ></v-badge></span
-              ></v-list-item-title>
+                  ></v-badge
+                ></span>
+                <span class="dots" v-if="item?.typing" style="display: flex"
+                  >...</span
+                ></v-list-item-title
+              >
             </v-list-item>
           </v-list>
         </v-card>
@@ -123,14 +127,14 @@ const connectWs = () => {
       }
     }
     if (Object.prototype.hasOwnProperty.call(data, "action")) {
-      if (
-        loggedInUserInfo.value.userId === data.receiverId &&
-        activeUser.value._id === data.senderId
-      ) {
-        activeUser.value.typing = true;
-        setTimeout(() => {
-          activeUser.value.typing = false;
-        }, 1000);
+      if (loggedInUserInfo.value.userId === data.receiverId) {
+        const findUser = users.value.find((user) => user._id === data.senderId);
+        if (findUser) {
+          findUser.typing = true;
+          setTimeout(() => {
+            findUser.typing = false;
+          }, 1000);
+        }
       }
     }
     if (Array.isArray(data)) {
@@ -211,5 +215,20 @@ onMounted(async () => {
   z-index: 10;
   background: white;
   min-height: 50px;
+}
+.dots {
+  animation: typing 1s infinite;
+}
+
+@keyframes typing {
+  0% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
 }
 </style>
