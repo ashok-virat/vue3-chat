@@ -103,11 +103,20 @@ onMounted(async () => {
     ws.value = new WebSocket("wss://pointy-gleaming-sapphire.glitch.me/");
 
     ws.value.onmessage = (message) => {
-      const uint8Array = new Uint8Array(JSON.parse(message.data).data);
-      const text = new TextDecoder().decode(uint8Array);
-      const data = JSON.parse(text);
+      const event = JSON.parse(message.data);
+      let data = null;
+      if (event?.type === "Buffer") {
+        const uint8Array = new Uint8Array(JSON.parse(message.data).data);
+        const text = new TextDecoder().decode(uint8Array);
+        data = JSON.parse(text);
+      } else {
+        data = event;
+      }
       if (Object.prototype.hasOwnProperty.call(data, "message")) {
-        if (loggedInUserInfo.value.userId === data.receiverId) {
+        if (
+          loggedInUserInfo.value.userId === data.receiverId &&
+          activeUser.value._id === data.senderId
+        ) {
           newMessages(data);
           setTimeout(() => {
             var userListContainer = document.querySelector(".user-list");
@@ -117,11 +126,15 @@ onMounted(async () => {
           }, 1000);
         }
       }
-      if (Object.prototype.hasOwnProperty.call(data, "active")) {
-        const findUser = users.value.find((user) => user._id === data.userId);
-        if (findUser) {
-          findUser.active = data.active;
-        }
+      if (Array.isArray(data)) {
+        users.value.forEach((x) => {
+          const findUser = data.find((user) => user.userId === x._id);
+          if (findUser) {
+            x.active = true;
+          } else {
+            x.active = false;
+          }
+        });
       }
     };
 
@@ -132,9 +145,12 @@ onMounted(async () => {
       ws.value.send(JSON.stringify(user));
     });
 
-    ws.value.addEventListener("close", function () {
-      console.log("WebSocket connection is now closed.");
+    window.addEventListener("beforeunload", function () {
+      const user = loggedInUserInfo.value;
+      user.active = false;
+      ws.value.send(JSON.stringify(user));
     });
+
     try {
       loading.value = true;
       const data = await ApiService.fetchUsers();

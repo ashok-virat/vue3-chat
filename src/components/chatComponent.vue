@@ -5,7 +5,12 @@
         <v-avatar color="black" size="x-small">
           {{ user.userName[0] }}
         </v-avatar>
-        <span class="font-weight-medium pl-2">{{ user.userName }}</span>
+        <span class="font-weight-medium pl-3"
+          >{{ user.userName }}
+          <p v-if="user?.active" class="text-left text-success online">
+            online
+          </p></span
+        >
       </div>
       <v-list v-if="messages.length" class="pa-2 user-list">
         <v-list-item
@@ -32,7 +37,7 @@
         </v-list-item>
       </v-list>
       <div v-if="!messages.length && !loading" class="loader">
-        No messages avilable
+        No messages available
       </div>
       <div v-if="loading" class="loader">
         <v-progress-circular
@@ -177,5 +182,8 @@ onMounted(async () => {
   position: absolute;
   top: 50%;
   left: 50%;
+}
+.online {
+  font-size: 12px;
 }
 </style>
