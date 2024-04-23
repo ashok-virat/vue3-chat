@@ -82,7 +82,7 @@ const newMessages = (message) => {
 };
 
 onBeforeUnmount(() => {
-  if (ws.value) {
+  if (ws.value && ws.value.readyState === WebSocket.OPEN) {
     const user = loggedInUserInfo.value;
     user.active = false;
     ws.value.send(JSON.stringify(user));
@@ -96,61 +96,72 @@ const emitMessages = (message) => {
   }
 };
 
+const connectWs = () => {
+  ws.value = new WebSocket("wss://pointy-gleaming-sapphire.glitch.me/");
+
+  ws.value.onmessage = (message) => {
+    const event = JSON.parse(message.data);
+    let data = null;
+    if (event?.type === "Buffer") {
+      const uint8Array = new Uint8Array(JSON.parse(message.data).data);
+      const text = new TextDecoder().decode(uint8Array);
+      data = JSON.parse(text);
+    } else {
+      data = event;
+    }
+    if (Object.prototype.hasOwnProperty.call(data, "message")) {
+      if (
+        loggedInUserInfo.value.userId === data.receiverId &&
+        activeUser.value._id === data.senderId
+      ) {
+        newMessages(data);
+        setTimeout(() => {
+          var userListContainer = document.querySelector(".user-list");
+          if (userListContainer) {
+            userListContainer.scrollTop = userListContainer.scrollHeight;
+          }
+        }, 1000);
+      }
+    }
+    if (Array.isArray(data)) {
+      users.value.forEach((x) => {
+        const findUser = data.find((user) => user.userId === x._id);
+        if (findUser) {
+          x.active = true;
+        } else {
+          x.active = false;
+        }
+      });
+    }
+  };
+
+  ws.value.addEventListener("open", function () {
+    console.log("WebSocket connection is now open.");
+    const testUser = loggedInUserInfo.value;
+    testUser.active = false;
+    ws.value.send(JSON.stringify(testUser));
+    const user = loggedInUserInfo.value;
+    user.active = true;
+    ws.value.send(JSON.stringify(user));
+  });
+
+  ws.value.addEventListener("close", function () {
+    console.log("WebSocket connection is now closed.");
+    connectWs();
+  });
+
+  window.addEventListener("beforeunload", function () {
+    const user = loggedInUserInfo.value;
+    user.active = false;
+    ws.value.send(JSON.stringify(user));
+  });
+};
+
 onMounted(async () => {
   const userInfo = localStorage.getItem("user");
   if (userInfo) {
     loggedInUserInfo.value = JSON.parse(userInfo);
-    ws.value = new WebSocket("wss://pointy-gleaming-sapphire.glitch.me/");
-
-    ws.value.onmessage = (message) => {
-      const event = JSON.parse(message.data);
-      let data = null;
-      if (event?.type === "Buffer") {
-        const uint8Array = new Uint8Array(JSON.parse(message.data).data);
-        const text = new TextDecoder().decode(uint8Array);
-        data = JSON.parse(text);
-      } else {
-        data = event;
-      }
-      if (Object.prototype.hasOwnProperty.call(data, "message")) {
-        if (
-          loggedInUserInfo.value.userId === data.receiverId &&
-          activeUser.value._id === data.senderId
-        ) {
-          newMessages(data);
-          setTimeout(() => {
-            var userListContainer = document.querySelector(".user-list");
-            if (userListContainer) {
-              userListContainer.scrollTop = userListContainer.scrollHeight;
-            }
-          }, 1000);
-        }
-      }
-      if (Array.isArray(data)) {
-        users.value.forEach((x) => {
-          const findUser = data.find((user) => user.userId === x._id);
-          if (findUser) {
-            x.active = true;
-          } else {
-            x.active = false;
-          }
-        });
-      }
-    };
-
-    ws.value.addEventListener("open", function () {
-      console.log("WebSocket connection is now open.");
-      const user = loggedInUserInfo.value;
-      user.active = true;
-      ws.value.send(JSON.stringify(user));
-    });
-
-    window.addEventListener("beforeunload", function () {
-      const user = loggedInUserInfo.value;
-      user.active = false;
-      ws.value.send(JSON.stringify(user));
-    });
-
+    connectWs();
     try {
       loading.value = true;
       const data = await ApiService.fetchUsers();
