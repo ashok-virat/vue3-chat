@@ -88,7 +88,7 @@ const submitForm = async () => {
     localStorage.setItem("user", JSON.stringify(userInfo));
     setTimeout(() => {
       router.push("/chat");
-    }, 2000);
+    }, 500);
     loading.value = false;
   } catch (e) {
     snackbar.value = true;
