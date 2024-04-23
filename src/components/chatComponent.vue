@@ -168,6 +168,7 @@ onMounted(async () => {
   font-weight: 500;
   font-size: 18px;
   font-style: normal;
+  white-space: normal;
 }
 .user-list {
   height: calc(100vh - 139px);
