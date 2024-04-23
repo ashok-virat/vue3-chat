@@ -82,12 +82,10 @@ const newMessages = (message) => {
 };
 
 onBeforeUnmount(() => {
-  if (ws.value && ws.value.readyState === WebSocket.OPEN) {
-    const user = loggedInUserInfo.value;
-    user.active = false;
-    ws.value.send(JSON.stringify(user));
-    ws.value.close();
-  }
+  const user = loggedInUserInfo.value;
+  user.active = false;
+  ws.value.send(JSON.stringify(user));
+  ws.value.close();
   ws.value = "";
 });
 
@@ -124,6 +122,17 @@ const connectWs = () => {
         }, 1000);
       }
     }
+    if (Object.prototype.hasOwnProperty.call(data, "action")) {
+      if (
+        loggedInUserInfo.value.userId === data.receiverId &&
+        activeUser.value._id === data.senderId
+      ) {
+        activeUser.value.typing = true;
+        setTimeout(() => {
+          activeUser.value.typing = false;
+        }, 1000);
+      }
+    }
     if (Array.isArray(data)) {
       users.value.forEach((x) => {
         const findUser = data.find((user) => user.userId === x._id);
@@ -138,6 +147,9 @@ const connectWs = () => {
 
   ws.value.addEventListener("open", function () {
     console.log("WebSocket connection is now open.");
+    const dupUser = loggedInUserInfo.value;
+    dupUser.active = false;
+    ws.value.send(JSON.stringify(dupUser));
     const user = loggedInUserInfo.value;
     user.active = true;
     ws.value.send(JSON.stringify(user));

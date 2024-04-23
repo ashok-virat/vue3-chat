@@ -6,9 +6,15 @@
           {{ user.userName[0] }}
         </v-avatar>
         <span class="font-weight-medium pl-3"
-          >{{ user.userName }}
-          <p v-if="user?.active" class="text-left text-success online">
+          ><p class="text-left">{{ user.userName }}</p>
+          <p
+            v-if="user?.active && !user?.typing"
+            class="text-left text-success online"
+          >
             online
+          </p>
+          <p v-if="user?.typing" class="text-left text-success online">
+            typing...
           </p></span
         >
       </div>
@@ -54,6 +60,7 @@
           variant="filled"
           auto-grow
           @keydown.enter.prevent="createMessage"
+          @input="debouncedFunction"
           hide-details
         ></v-textarea>
       </div>
@@ -64,6 +71,7 @@
 <script setup>
 import { ref, defineProps, onMounted, defineEmits, nextTick } from "vue";
 import ApiService from "../service/userService";
+import lodash from "lodash";
 
 const loading = ref(false);
 
@@ -96,6 +104,20 @@ const generateTimestamp = () => {
   const timestamp = date.toISOString().replace("Z", "");
   return `${timestamp}Z`;
 };
+
+const sendTyping = () => {
+  console.log("sd");
+  const req = {
+    senderId: props.loggedInUserInfo.userId,
+    receiverId: props.user._id,
+    receiver: props.user.userName,
+    sender: props.loggedInUserInfo.userName,
+    action: "typring..",
+  };
+  emit("emitMessages", req);
+};
+
+const debouncedFunction = lodash.debounce(sendTyping, 500);
 
 const createMessage = async () => {
   const req = {
