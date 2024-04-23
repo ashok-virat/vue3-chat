@@ -88,6 +88,7 @@ onBeforeUnmount(() => {
     ws.value.send(JSON.stringify(user));
     ws.value.close();
   }
+  ws.value = "";
 });
 
 const emitMessages = (message) => {
@@ -137,9 +138,6 @@ const connectWs = () => {
 
   ws.value.addEventListener("open", function () {
     console.log("WebSocket connection is now open.");
-    const testUser = loggedInUserInfo.value;
-    testUser.active = false;
-    ws.value.send(JSON.stringify(testUser));
     const user = loggedInUserInfo.value;
     user.active = true;
     ws.value.send(JSON.stringify(user));
@@ -147,7 +145,11 @@ const connectWs = () => {
 
   ws.value.addEventListener("close", function () {
     console.log("WebSocket connection is now closed.");
-    connectWs();
+    setTimeout(() => {
+      if (ws.value) {
+        connectWs();
+      }
+    }, 2000);
   });
 
   window.addEventListener("beforeunload", function () {
