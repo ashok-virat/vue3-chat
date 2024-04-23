@@ -154,7 +154,7 @@ onMounted(async () => {
   text-align: right;
 }
 .user-card {
-  height: calc(100vh - 24px);
+  height: calc(100vh - 40px);
   overflow: auto;
   position: relative;
   padding: 0px;

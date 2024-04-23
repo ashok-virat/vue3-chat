@@ -177,7 +177,7 @@ onMounted(async () => {
   padding: 9px;
 }
 .user-card {
-  height: calc(100vh - 24px);
+  height: calc(100vh - 40px);
   overflow: auto;
 }
 .user-header {
