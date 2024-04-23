@@ -1,6 +1,23 @@
 <template>
-  <v-container fluid>
-    <v-row>
+  <v-container class="pa-0" fluid>
+    <div class="align-center d-flex navbar justify-space-between px-2">
+      <div class="pt-2">
+        <img class="logo" alt="Avatar" src="../../public/logo.png" />
+      </div>
+
+      <v-menu>
+        <template v-slot:activator="{ props }">
+          <v-avatar color="white" size="36px" class="user-info" v-bind="props">
+            <span class="font-weight-bold"> {{ userInfo() }} </span>
+          </v-avatar>
+        </template>
+
+        <v-list class="px-4">
+          <span class="user-info" @click="logout">logout</span>
+        </v-list>
+      </v-menu>
+    </div>
+    <v-row class="mt-3 px-2">
       <v-col cols="3">
         <v-card class="pa-2 pt-0 user-card" tile>
           <div class="user-header align-center d-flex user-header">
@@ -97,6 +114,18 @@ const emitMessages = (message) => {
   if (ws.value) {
     ws.value.send(JSON.stringify(message));
   }
+};
+
+const logout = () => {
+  sessionStorage.clear("user");
+  router.push("/login");
+};
+
+const userInfo = () => {
+  return (
+    (loggedInUserInfo.value.userName && loggedInUserInfo.value.userName[0]) ||
+    ""
+  );
 };
 
 const connectWs = () => {
@@ -206,7 +235,7 @@ onMounted(async () => {
   padding: 9px;
 }
 .user-card {
-  height: calc(100vh - 40px);
+  height: calc(100vh - 100px);
   overflow: auto;
 }
 .user-header {
@@ -230,5 +259,16 @@ onMounted(async () => {
   100% {
     opacity: 0;
   }
+}
+.navbar {
+  background: black;
+  min-height: 60px;
+  padding: 0px;
+}
+.logo {
+  width: 40px;
+}
+.user-info {
+  cursor: pointer;
 }
 </style>

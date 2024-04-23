@@ -2,7 +2,7 @@
   <v-container style="padding: 0px" fluid>
     <v-card class="user-card" tile>
       <div class="align-center d-flex navbar pl-2">
-        <v-avatar color="black" size="x-small">
+        <v-avatar color="black" size="30">
           {{ user.userName[0] }}
         </v-avatar>
         <span class="font-weight-medium pl-3"
@@ -175,7 +175,7 @@ onMounted(async () => {
   text-align: right;
 }
 .user-card {
-  height: calc(100vh - 40px);
+  height: calc(100vh - 100px);
   overflow: auto;
   position: relative;
   padding: 0px;
@@ -192,7 +192,7 @@ onMounted(async () => {
   white-space: normal;
 }
 .user-list {
-  height: calc(100vh - 145px);
+  height: calc(100vh - 200px);
   overflow: auto;
 }
 .navbar {
