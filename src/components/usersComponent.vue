@@ -37,14 +37,20 @@
                 ><span>{{ item.userName }}</span>
                 <span v-if="!item?.typing" style="display: flex"
                   ><v-badge
+                    v-if="item?.newMessages"
+                    color="info"
+                    :content="item?.newMessages"
+                    inline
+                  ></v-badge
+                  ><v-badge
                     :color="item.active ? 'success' : 'error'"
                     dot
                   ></v-badge
                 ></span>
                 <span class="dots" v-if="item?.typing" style="display: flex"
                   >...</span
-                ></v-list-item-title
-              >
+                >
+              </v-list-item-title>
             </v-list-item>
           </v-list>
         </v-card>
@@ -91,6 +97,7 @@ const openChat = (user) => {
   nextTick(() => {
     loadChat.value = true;
     activeUser.value = user;
+    activeUser.value.newMessages = 0;
   });
 };
 
@@ -153,6 +160,15 @@ const connectWs = () => {
             userListContainer.scrollTop = userListContainer.scrollHeight;
           }
         }, 1000);
+      } else if (loggedInUserInfo.value.userId === data.receiverId) {
+        const findUser = users.value.find((user) => user._id === data.senderId);
+        if (findUser) {
+          if ("newMessages" in findUser) {
+            findUser.newMessages = findUser.newMessages + 1;
+          } else {
+            findUser.newMessages = 1;
+          }
+        }
       }
     }
     if (Object.prototype.hasOwnProperty.call(data, "action")) {
